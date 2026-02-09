@@ -42,8 +42,8 @@ COLORS = {
 
 # ========== Utility Functions ==========
 
-def grid_to_image(grid, cell_size=20):
-    """Convert grid to image"""
+def grid_to_image(grid, cell_size=12):
+    """Convert grid to image with smaller default size for better fit"""
     h, w = grid.shape
     img = np.zeros((h, w, 3), dtype=np.uint8)
     for val, color in COLORS.items():
@@ -328,7 +328,11 @@ with tab2:
         agents[p1].reset()
         agents[p2].reset()
         
-        placeholder = st.empty()
+        # Use columns to constrain game visualization width
+        viz_col1, viz_col2, viz_col3 = st.columns([1, 2, 1])
+        with viz_col2:
+            placeholder = st.empty()
+        
         done = False
         steps = 0
         
@@ -340,7 +344,8 @@ with tab2:
             obs1, obs2, done, winner = env.step(a1, a2)
             
             img = grid_to_image(env.grid)
-            placeholder.image(img, caption=f"Step {steps}", use_container_width=True)
+            with viz_col2:
+                placeholder.image(img, caption=f"Step {steps}", use_container_width=False)
             
             steps += 1
             time.sleep(1.0/fps)
