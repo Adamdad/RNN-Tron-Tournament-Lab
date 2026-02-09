@@ -55,7 +55,7 @@ def grid_to_image(grid, cell_size=12):
 def load_all_agents():
     """Load all Agents (built-in + submitted)"""
     agents = {"🎲 Random": RandomAgent(), "📚 Example": ExampleAgent()}
-    manager = SubmissionManager(SUBMISSIONS_DIR)
+    manager = SubmissionManager(str(SUBMISSIONS_DIR))
     agents.update(manager.load_all_agents())
     return agents
 
@@ -91,6 +91,35 @@ def save_tournament_results(rankings):
         return True
     except Exception as e:
         print(f"Error saving tournament results: {e}")
+        return False
+
+
+def delete_submission_files(name):
+    """Delete submission files directly"""
+    try:
+        py_file = SUBMISSIONS_DIR / f"{name}_agent.py"
+        pth_file = SUBMISSIONS_DIR / f"{name}_agent.pth"
+        
+        deleted = False
+        
+        if py_file.exists():
+            py_file.unlink()
+            deleted = True
+        
+        if pth_file.exists():
+            pth_file.unlink()
+            deleted = True
+        
+        # Delete backups
+        for backup_file in SUBMISSIONS_DIR.glob(f"{name}_agent_*.py"):
+            backup_file.unlink()
+        
+        for backup_file in SUBMISSIONS_DIR.glob(f"{name}_agent_*.pth"):
+            backup_file.unlink()
+        
+        return deleted
+    except Exception as e:
+        st.error(f"Error deleting files: {e}")
         return False
 
 
@@ -522,12 +551,16 @@ with tab3:
 with tab4:
     st.header("📋 Submission History")
     
+    # Get list of submissions directly from filesystem
+    py_files = list(SUBMISSIONS_DIR.glob("*_agent.py"))
+    submissions = []
+    for f in py_files:
+        name = f.stem.replace("_agent", "")
+        submissions.append(name)
+    submissions = sorted(submissions)
+    
     # Delete Submission Section
     st.subheader("🗑️ Manage Submissions")
-    
-    # Get list of submissions
-    manager = SubmissionManager(SUBMISSIONS_DIR)
-    submissions = manager.get_all_submissions()
     
     if submissions:
         col1, col2 = st.columns([3, 1])
@@ -543,7 +576,7 @@ with tab4:
             if st.button("🗑️ Delete", type="secondary", use_container_width=True):
                 if submission_to_delete:
                     with st.spinner(f"Deleting {submission_to_delete}..."):
-                        success = manager.delete_submission(submission_to_delete)
+                        success = delete_submission_files(submission_to_delete)
                         if success:
                             # Also remove from log
                             log_file = SUBMISSIONS_DIR / "submission_log.json"
@@ -573,7 +606,7 @@ with tab4:
                         with st.spinner("Deleting all submissions..."):
                             deleted_count = 0
                             for sub in submissions:
-                                if manager.delete_submission(sub):
+                                if delete_submission_files(sub):
                                     deleted_count += 1
                             
                             # Clear log file
@@ -628,7 +661,6 @@ with tab4:
     st.divider()
     st.subheader("All Submission Files")
     
-    py_files = list(SUBMISSIONS_DIR.glob("*_agent.py"))
     if py_files:
         for f in sorted(py_files):
             size = f.stat().st_size
