@@ -56,6 +56,50 @@ class SubmissionManager:
         except Exception as e:
             print(f"✗ Failed to load {py_file.name}: {e}")
             return None
+    
+    def get_all_submissions(self):
+        """Get list of all submission names"""
+        submissions = []
+        for py_file in self.submissions_dir.glob("*_agent.py"):
+            name = py_file.stem.replace("_agent", "")
+            submissions.append(name)
+        return sorted(submissions)
+    
+    def delete_submission(self, name):
+        """Delete a submission by name"""
+        try:
+            # Find files
+            py_file = self.submissions_dir / f"{name}_agent.py"
+            pth_file = self.submissions_dir / f"{name}_agent.pth"
+            
+            deleted = False
+            
+            # Delete .py file
+            if py_file.exists():
+                py_file.unlink()
+                deleted = True
+                print(f"✓ Deleted {py_file.name}")
+            
+            # Delete .pth file
+            if pth_file.exists():
+                pth_file.unlink()
+                deleted = True
+                print(f"✓ Deleted {pth_file.name}")
+            
+            # Also delete backup files if exist
+            for backup_file in self.submissions_dir.glob(f"{name}_agent_*.py"):
+                backup_file.unlink()
+                print(f"✓ Deleted backup {backup_file.name}")
+            
+            for backup_file in self.submissions_dir.glob(f"{name}_agent_*.pth"):
+                backup_file.unlink()
+                print(f"✓ Deleted backup {backup_file.name}")
+            
+            return deleted
+            
+        except Exception as e:
+            print(f"✗ Failed to delete {name}: {e}")
+            return False
 
 
 if __name__ == "__main__":

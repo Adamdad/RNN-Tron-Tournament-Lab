@@ -522,12 +522,88 @@ with tab3:
 with tab4:
     st.header("📋 Submission History")
     
+    # Delete Submission Section
+    st.subheader("🗑️ Manage Submissions")
+    
+    # Get list of submissions
+    manager = SubmissionManager(SUBMISSIONS_DIR)
+    submissions = manager.get_all_submissions()
+    
+    if submissions:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            submission_to_delete = st.selectbox(
+                "Select submission to delete",
+                submissions,
+                key="delete_select"
+            )
+        with col2:
+            st.write("")
+            st.write("")
+            if st.button("🗑️ Delete", type="secondary", use_container_width=True):
+                if submission_to_delete:
+                    with st.spinner(f"Deleting {submission_to_delete}..."):
+                        success = manager.delete_submission(submission_to_delete)
+                        if success:
+                            # Also remove from log
+                            log_file = SUBMISSIONS_DIR / "submission_log.json"
+                            if log_file.exists():
+                                with open(log_file, "r") as f:
+                                    logs = json.load(f)
+                                # Filter out logs for this student
+                                logs = [log for log in logs if log['student'] != submission_to_delete]
+                                with open(log_file, "w") as f:
+                                    json.dump(logs, f, indent=2)
+                            
+                            st.success(f"✅ Deleted {submission_to_delete}")
+                            st.cache_resource.clear()
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error(f"❌ Failed to delete {submission_to_delete}")
+        
+        # Delete all button
+        st.divider()
+        col1, col2, col3 = st.columns([2, 2, 2])
+        with col2:
+            if st.button("🗑️ Delete ALL Submissions", type="primary", use_container_width=True):
+                confirm_col1, confirm_col2 = st.columns(2)
+                with confirm_col1:
+                    if st.button("✅ Confirm Delete All", type="secondary", use_container_width=True):
+                        with st.spinner("Deleting all submissions..."):
+                            deleted_count = 0
+                            for sub in submissions:
+                                if manager.delete_submission(sub):
+                                    deleted_count += 1
+                            
+                            # Clear log file
+                            log_file = SUBMISSIONS_DIR / "submission_log.json"
+                            if log_file.exists():
+                                log_file.unlink()
+                            
+                            # Clear tournament results
+                            results_file = SUBMISSIONS_DIR / "tournament_results.json"
+                            if results_file.exists():
+                                results_file.unlink()
+                            
+                            st.success(f"✅ Deleted {deleted_count} submissions")
+                            st.cache_resource.clear()
+                            time.sleep(1)
+                            st.rerun()
+                with confirm_col2:
+                    if st.button("❌ Cancel", use_container_width=True):
+                        st.rerun()
+    else:
+        st.info("No submissions to delete")
+    
+    st.divider()
+    
+    # Show recent submissions
     log_file = SUBMISSIONS_DIR / "submission_log.json"
     if log_file.exists():
         with open(log_file, "r") as f:
             logs = json.load(f)
         
-        # Show recent submissions
         st.subheader("Recent Submissions")
         
         for log in reversed(logs[-10:]):  # Last 10
@@ -546,7 +622,7 @@ with tab4:
         if len(logs) > 10:
             st.caption(f"... and {len(logs) - 10} more submissions")
     else:
-        st.info("No submissions yet. Be the first!")
+        st.info("No submission history yet")
     
     # Show all files
     st.divider()
