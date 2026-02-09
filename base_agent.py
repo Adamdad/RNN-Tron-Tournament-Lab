@@ -1,6 +1,6 @@
 """
 Base Agent Interface
-学生必须实现 StudentAgent 类
+Students must implement the StudentAgent class
 """
 
 import torch
@@ -9,7 +9,7 @@ import numpy as np
 
 
 class BaseAgent(nn.Module):
-    """Agent基类"""
+    """Base Agent class"""
     
     def __init__(self, name="Agent"):
         super().__init__()
@@ -18,15 +18,15 @@ class BaseAgent(nn.Module):
         self.model = self.build_model()
     
     def build_model(self):
-        """构建模型 - 子类必须实现"""
+        """Build model - subclasses must implement"""
         raise NotImplementedError
     
     def reset(self):
-        """重置状态"""
+        """Reset state"""
         self.hidden = None
     
     def get_action(self, obs):
-        """获取动作"""
+        """Get action"""
         x = torch.from_numpy(obs).float().unsqueeze(0).unsqueeze(0)
         with torch.no_grad():
             if self.hidden is not None:
@@ -39,7 +39,7 @@ class BaseAgent(nn.Module):
 
 
 class ExampleModel(nn.Module):
-    """示例模型"""
+    """Example model"""
     def __init__(self):
         super().__init__()
         self.lstm = nn.LSTM(10, 64, batch_first=True)
@@ -51,7 +51,7 @@ class ExampleModel(nn.Module):
 
 
 class ExampleAgent(BaseAgent):
-    """示例Agent"""
+    """Example Agent"""
     def __init__(self):
         super().__init__("Example")
     
@@ -63,7 +63,7 @@ class ExampleAgent(BaseAgent):
 
 
 class RandomAgent(BaseAgent):
-    """随机Agent"""
+    """Random Agent"""
     def __init__(self):
         super().__init__("Random")
         self.model = None

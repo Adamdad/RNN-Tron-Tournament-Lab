@@ -1,86 +1,86 @@
 # RNN Tron Tournament Lab
 
-学生训练 RNN Agent 对战 Tron 游戏的锦标赛系统。
+A tournament system for students to train RNN Agents to battle in the Tron game.
 
-## 文件结构
+## File Structure
 
 ```
 lab/
-├── base_agent.py           # Agent基类（68行）
-├── student_template.py     # 学生模板（95行，含训练代码）
-├── generate_data.py        # 生成专家数据（93行）
-├── tournament_runner.py    # 锦标赛运行器（92行）
-├── tournament_app.py       # Streamlit界面（116行）
-├── submission_manager.py   # 提交管理器（54行）
-├── tron_env.py            # 游戏环境（保留）
-└── submissions/           # 学生提交目录
+├── base_agent.py           # Base Agent class (68 lines)
+├── student_template.py     # Student template (95 lines, includes training code)
+├── generate_data.py        # Generate expert data (93 lines)
+├── tournament_runner.py    # Tournament runner (92 lines)
+├── tournament_app.py       # Streamlit interface (116 lines)
+├── submission_manager.py   # Submission manager (54 lines)
+├── tron_env.py            # Game environment (retained)
+└── submissions/           # Student submissions directory
 ```
 
-## 使用流程
+## Usage Workflow
 
-### 1. 教师生成数据
+### 1. Teacher Generates Data
 
 ```bash
 python generate_data.py --games 1000
 ```
 
-### 2. 学生开发
+### 2. Student Development
 
-复制模板并修改：
+Copy the template and modify:
 
 ```bash
 cp student_template.py submissions/your_name_agent.py
 ```
 
-修改 `STUDENT_INFO` 和 `MyModel` 类，然后训练：
+Modify `STUDENT_INFO` and `MyModel` class, then train:
 
 ```bash
 python submissions/your_name_agent.py --train --epochs 20
 ```
 
-### 3. 运行锦标赛
+### 3. Run Tournament
 
 ```bash
-# 命令行
+# Command line
 python tournament_runner.py
 
-# 或 Streamlit 界面
+# Or Streamlit interface
 streamlit run tournament_app.py
 ```
 
-## 核心类说明
+## Core Class Documentation
 
-### StudentAgent (学生必须实现)
+### StudentAgent (Student must implement)
 
 ```python
 class StudentAgent(nn.Module):
     def __init__(self):
         self.name = "TeamName"
-        self.model = MyModel()  # 你的RNN模型
+        self.model = MyModel()  # Your RNN model
         self.hidden = None
     
     def reset(self):
-        """每局游戏开始前调用"""
+        """Called before each game starts"""
         self.hidden = None
     
     def get_action(self, obs):
-        """根据观测选择动作 (0=上, 1=下, 2=左, 3=右)"""
+        """Select action based on observation (0=UP, 1=DOWN, 2=LEFT, 3=RIGHT)"""
         # obs: numpy array (10,)
-        # 返回: int 动作
+        # Return: int action
 ```
 
-## 简化说明
+## Simplification Notes
 
-- **base_agent.py**: 从 202 行 → 68 行
-- **student_template.py**: 从 470 行 → 95 行  
-- **generate_data.py**: 从 504 行 → 93 行
-- **tournament_runner.py**: 从 312 行 → 92 行
-- **tournament_app.py**: 从 315 行 → 116 行
-- **submission_manager.py**: 从 330 行 → 54 行
+- **base_agent.py**: From 202 lines -> 68 lines
+- **student_template.py**: From 470 lines -> 95 lines  
+- **generate_data.py**: From 504 lines -> 93 lines
+- **tournament_runner.py**: From 312 lines -> 92 lines
+- **tournament_app.py**: From 315 lines -> 116 lines
+- **submission_manager.py**: From 330 lines -> 54 lines
 
-总计从 2133 行简化到 518 行（减少 75%）
+Total reduced from 2133 lines to 518 lines (75% reduction)
 
-## 依赖
+## Dependencies
 
 ```bash
 pip install torch numpy pygame streamlit pillow

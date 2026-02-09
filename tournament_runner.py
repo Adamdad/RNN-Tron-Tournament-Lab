@@ -1,5 +1,5 @@
 """
-锦标赛运行器
+Tournament Runner
 """
 
 import numpy as np
@@ -13,7 +13,7 @@ class Tournament:
         self.grid_size = grid_size
     
     def run_game(self, agent1, agent2):
-        """运行单局游戏"""
+        """Run single game"""
         env = BlindTronEnv(grid_size=self.grid_size, render_mode=False)
         obs1, obs2 = env.reset()
         agent1.reset()
@@ -33,7 +33,7 @@ class Tournament:
         return winner
     
     def run_match(self, agent1, agent2, name1, name2, num_games=3):
-        """运行多局比赛"""
+        """Run multiple games"""
         print(f"\n{name1} vs {name2}")
         
         wins = {name1: 0, name2: 0, "draw": 0}
@@ -50,7 +50,7 @@ class Tournament:
         return wins
     
     def run_tournament(self, agents, games_per_pair=3):
-        """运行循环赛"""
+        """Run round-robin tournament"""
         names = list(agents.keys())
         scores = {name: {"points": 0, "wins": 0} for name in names}
         
@@ -63,7 +63,7 @@ class Tournament:
                 name1, name2 = names[i], names[j]
                 wins = self.run_match(agents[name1], agents[name2], name1, name2, games_per_pair)
                 
-                # 计分
+                # Scoring
                 if wins[name1] > wins[name2]:
                     scores[name1]["points"] += 3
                     scores[name1]["wins"] += 1
@@ -74,7 +74,7 @@ class Tournament:
                     scores[name1]["points"] += 1
                     scores[name2]["points"] += 1
         
-        # 排序
+        # Sort
         rankings = sorted(scores.items(), key=lambda x: (-x[1]["points"], -x[1]["wins"]))
         
         print(f"\n{'='*60}")
@@ -87,7 +87,7 @@ class Tournament:
 
 
 if __name__ == "__main__":
-    # 测试
+    # Test
     agents = {
         "Example": ExampleAgent(),
         "Random": RandomAgent(),

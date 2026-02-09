@@ -1,5 +1,5 @@
 """
-Streamlit锦标赛界面
+Streamlit Tournament Interface
 """
 
 import streamlit as st
@@ -15,7 +15,7 @@ from submission_manager import SubmissionManager
 
 st.set_page_config(page_title="RNN Tron Championship", layout="wide")
 
-# 颜色映射
+# Color mapping
 COLORS = {
     EMPTY: [0, 0, 0],
     WALL: [100, 100, 100],
@@ -27,7 +27,7 @@ COLORS = {
 
 
 def grid_to_image(grid, cell_size=20):
-    """转换网格为图片"""
+    """Convert grid to image"""
     h, w = grid.shape
     img = np.zeros((h, w, 3), dtype=np.uint8)
     for val, color in COLORS.items():
@@ -37,23 +37,23 @@ def grid_to_image(grid, cell_size=20):
 
 @st.cache_resource
 def load_agents():
-    """加载Agent"""
+    """Load Agents"""
     agents = {"🎲 Random": RandomAgent(), "📚 Example": ExampleAgent()}
     manager = SubmissionManager("submissions")
     agents.update(manager.load_all_agents())
     return agents
 
 
-# 页面布局
+# Page layout
 st.title("🐍 RNN Tron Championship")
 
 agents = load_agents()
 st.sidebar.success(f"Loaded {len(agents)} agents")
 
-# 标签页
+# Tabs
 tab1, tab2, tab3 = st.tabs(["🏆 Tournament", "🎮 Live Match", "📊 Leaderboard"])
 
-# === 锦标赛 ===
+# === Tournament ===
 with tab1:
     st.header("Round Robin Tournament")
     
@@ -66,11 +66,11 @@ with tab1:
                     tourney = Tournament()
                     rankings = tourney.run_tournament(agents, games)
                     
-                    # 保存结果到session state
+                    # Save results to session state
                     st.session_state['tournament_results'] = rankings
                     st.session_state['tournament_complete'] = True
                 
-                # 显示完成消息
+                # Show completion message
                 st.success(f"✅ Tournament complete! Go to Leaderboard tab to see rankings.")
             else:
                 st.error("Need at least 2 agents")
@@ -81,7 +81,7 @@ with tab1:
         else:
             st.info("Click 'Start Tournament' to run round-robin competition")
 
-# === 观战 ===
+# === Live Match ===
 with tab2:
     st.header("Live Match")
     
@@ -124,17 +124,17 @@ with tab2:
         else:
             st.info("🤝 Draw!")
 
-# === 排行榜 ===
+# === Leaderboard ===
 with tab3:
     st.header("📊 Leaderboard")
     
     if st.session_state.get('tournament_complete'):
-        # 显示锦标赛结果
+        # Show tournament results
         rankings = st.session_state['tournament_results']
         
         st.success(f"🏆 Tournament Results ({len(rankings)} agents)")
         
-        # 表头
+        # Headers
         cols = st.columns([1, 4, 2, 2, 2])
         cols[0].write("**Rank**")
         cols[1].write("**Agent**")
@@ -144,7 +144,7 @@ with tab3:
         
         st.divider()
         
-        # 显示排名
+        # Show rankings
         for rank, (name, score) in enumerate(rankings, 1):
             cols = st.columns([1, 4, 2, 2, 2])
             
@@ -177,8 +177,8 @@ with tab3:
         
         st.divider()
         
-        # 显示统计
-        total_games = sum(score['wins'] for _, score in rankings) * 3  # 估算
+        # Show statistics
+        total_games = sum(score['wins'] for _, score in rankings) * 3  # Estimate
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Total Agents", len(rankings))
@@ -189,7 +189,7 @@ with tab3:
             st.metric("Matches Played", f"{len(rankings) * (len(rankings)-1) // 2}")
     
     else:
-        # 未运行锦标赛，显示注册列表
+        # No tournament run yet, show registered list
         st.info("🏃 No tournament results yet. Run a tournament in the 'Tournament' tab first.")
         
         st.divider()
@@ -211,7 +211,7 @@ with tab3:
     
     st.divider()
     
-    # 刷新按钮
+    # Refresh button
     if st.button("🔄 Refresh Agents"):
         st.cache_resource.clear()
         st.rerun()

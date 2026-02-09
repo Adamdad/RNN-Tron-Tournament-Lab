@@ -1,12 +1,12 @@
 """
-学生提交模板 - 实现你的RNN Agent
+Student Submission Template - Implement Your RNN Agent
 """
 
 import torch
 import torch.nn as nn
 import numpy as np
 
-# ========== 填写你的信息 ==========
+# ========== Fill in Your Information ==========
 STUDENT_INFO = {
     "name": "Your Name",
     "student_id": "Your ID",
@@ -15,11 +15,11 @@ STUDENT_INFO = {
 }
 
 
-# ========== 定义你的模型 ==========
+# ========== Define Your Model ==========
 class MyModel(nn.Module):
     def __init__(self):
         super().__init__()
-        # TODO: 定义你的网络结构
+        # TODO: Define your network architecture
         self.lstm = nn.LSTM(10, 64, batch_first=True)
         self.fc = nn.Linear(64, 4)
     
@@ -28,7 +28,7 @@ class MyModel(nn.Module):
         return self.fc(out[:, -1, :]), hidden
 
 
-# ========== Agent类（不要修改类名）==========
+# ========== Agent Class (Do Not Modify Class Name) ==========
 class StudentAgent(nn.Module):
     def __init__(self):
         super().__init__()
@@ -55,10 +55,10 @@ class StudentAgent(nn.Module):
         return self.model(x, hidden)
 
 
-# ========== 训练代码 ==========
+# ========== Training Code ==========
 def train(data_path="train_X.npy", labels_path="train_Y.npy", 
           epochs=10, lr=0.001, batch_size=32):
-    """训练模型"""
+    """Train model"""
     print("Loading data...")
     X = np.load(data_path)
     Y = np.load(labels_path)
@@ -92,7 +92,7 @@ def train(data_path="train_X.npy", labels_path="train_Y.npy",
         acc = 100 * correct / len(X)
         print(f"Epoch {epoch+1}/{epochs}: Loss={total_loss/len(loader):.4f}, Acc={acc:.2f}%")
     
-    # 保存模型
+    # Save model
     import os
     os.makedirs("submissions", exist_ok=True)
     save_path = f"submissions/{STUDENT_INFO['name'].replace(' ', '_').lower()}_agent.pth"
@@ -101,7 +101,7 @@ def train(data_path="train_X.npy", labels_path="train_Y.npy",
     return agent
 
 
-# ========== 主程序 ==========
+# ========== Main Program ==========
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()

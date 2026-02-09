@@ -1,29 +1,29 @@
-# RNN Tron Challenge - Streamlit Cloud 部署指南
+# RNN Tron Challenge - Streamlit Cloud Deployment Guide
 
-## 🚀 快速部署（5分钟搞定）
+## Quick Deployment (5 minutes)
 
-### 步骤 1: 准备 GitHub 仓库
+### Step 1: Prepare GitHub Repository
 
 ```bash
-# 1. 创建新的 GitHub 仓库（例如：tron-challenge）
-# 2. 复制 lab/ 文件夹内容到仓库根目录
+# 1. Create a new GitHub repository (e.g., tron-challenge)
+# 2. Copy lab/ folder contents to repository root
 
-# 目录结构应该是：
+# Directory structure should be:
 tron-challenge/
-├── app_cloud.py           # 主应用（刚创建的）
+├── app_cloud.py           # Main application
 ├── base_agent.py
 ├── student_template.py
 ├── generate_data.py
 ├── tournament_runner.py
 ├── submission_manager.py
 ├── tron_env.py
-├── requirements.txt       # 需要创建
-├── packages.txt          # 系统依赖（可选）
-└── submissions/          # 空文件夹
+├── requirements.txt       # Needs to be created
+├── packages.txt          # System dependencies (optional)
+└── submissions/          # Empty folder
     └── .gitkeep
 ```
 
-### 步骤 2: 创建 requirements.txt
+### Step 2: Create requirements.txt
 
 ```txt
 streamlit>=1.28.0
@@ -33,81 +33,81 @@ pygame>=2.5.0
 pillow>=10.0.0
 ```
 
-### 步骤 3: 创建 packages.txt（系统依赖）
+### Step 3: Create packages.txt (System Dependencies)
 
 ```txt
-# 用于 pygame
+# For pygame
 libsdl2-dev
 libsdl2-image-dev
 libsdl2-mixer-dev
 libsdl2-ttf-dev
 ```
 
-### 步骤 4: 部署到 Streamlit Cloud
+### Step 4: Deploy to Streamlit Cloud
 
-1. 访问 [streamlit.io/cloud](https://streamlit.io/cloud)
-2. 点击 "New app"
-3. 选择你的 GitHub 仓库
-4. 配置文件选择 `app_cloud.py`
-5. 点击 "Deploy"
+1. Visit [streamlit.io/cloud](https://streamlit.io/cloud)
+2. Click "New app"
+3. Select your GitHub repository
+4. Select `app_cloud.py` as the configuration file
+5. Click "Deploy"
 
-**等待 2-3 分钟，应用就会自动上线！**
+**Wait 2-3 minutes for the app to go live!**
 
 ---
 
-## 📋 学生使用流程
+## Student Usage Workflow
 
-### 1. 开发模型（本地）
+### 1. Develop Model (Local)
 
 ```bash
-# 学生本地训练
+# Student trains locally
 python student_template.py --train --epochs 20
 ```
 
-### 2. 提交到网站
+### 2. Submit to Website
 
-1. 打开 Streamlit 应用链接
-2. 在侧边栏填写姓名
-3. 上传两个文件：
-   - `alice_agent.py`（代码）
-   - `alice_agent.pth`（权重）
-4. 点击 "Submit & Validate"
-5. 系统自动验证并显示结果
+1. Open the Streamlit app link
+2. Fill in your name in the sidebar
+3. Upload two files:
+   - `alice_agent.py` (code)
+   - `alice_agent.pth` (weights)
+4. Click "Submit & Validate"
+5. System automatically validates and displays results
 
-### 3. 查看排名
+### 3. View Rankings
 
-- 进入 "Leaderboard" 标签页
-- 点击 "Start Tournament" 运行比赛
-- 查看实时排名
+- Go to "Leaderboard" tab
+- Click "Start Tournament" to run the competition
+- View real-time rankings
 
 ---
 
-## 🔧 高级配置
+## Advanced Configuration
 
-### 持久化存储（重要！）
+### Persistent Storage (Important!)
 
-Streamlit Cloud 重启后文件会丢失。有两种解决方案：
+Streamlit Cloud files are lost after restart. Two solutions:
 
-#### 方案 A: 使用外部存储（推荐）
+#### Option A: Use External Storage (Recommended)
 
-修改 `app_cloud.py` 中的存储路径：
+Modify storage path in `app_cloud.py`:
 
 ```python
-# 使用 AWS S3
+# Use AWS S3
 import boto3
 s3 = boto3.client('s3')
 BUCKET_NAME = 'your-bucket'
 
-# 或者使用 Google Drive
-# 或者使用数据库（Supabase, Firebase等）
+# Or use Google Drive
+# Or use database (Supabase, Firebase, etc.)
 ```
 
-#### 方案 B: 定期备份到 GitHub
+#### Option B: Regular Backup to GitHub
 
-添加自动备份功能：
+Add automatic backup functionality:
 
 ```python
-# 在 app_cloud.py 中添加
+# Add to app_cloud.py
 import subprocess
 
 def backup_to_github():
@@ -116,71 +116,71 @@ def backup_to_github():
     subprocess.run(['git', 'push'])
 ```
 
-#### 方案 C: 使用 Streamlit 的持久化（最简单）
+#### Option C: Use Streamlit Persistence (Simplest)
 
 ```python
-# 使用 st.session_state 和 @st.cache_resource
-# 但文件仍然只在内存中
+# Use st.session_state and @st.cache_resource
+# But files still remain only in memory
 ```
 
-**推荐：对于课堂使用，方案 A 最可靠。**
+**Recommendation: For classroom use, Option A is most reliable.**
 
 ---
 
-## 🎨 自定义配置
+## Customization
 
-### 修改页面标题
+### Modify Page Title
 
-在 `app_cloud.py` 中修改：
+In `app_cloud.py`:
 
 ```python
 st.set_page_config(
-    page_title="你的课程名称 - RNN Challenge", 
+    page_title="Your Course Name - RNN Challenge", 
     layout="wide"
 )
 ```
 
-### 修改评分规则
+### Modify Scoring Rules
 
-在 `tournament_runner.py` 中修改计分：
+In `tournament_runner.py` modify scoring:
 
 ```python
-# 当前：胜3分，平1分，负0分
-# 可以改为其他规则
+# Current: Win 3 points, Draw 1 point, Loss 0 points
+# Can be changed to other rules
 ```
 
-### 添加参数限制
+### Add Parameter Limits
 
-在 `validate_submission()` 函数中：
+In `validate_submission()` function:
 
 ```python
-# 当前限制：100K 参数
+# Current limit: 100K parameters
 if total_params > 100_000:
     return False, "Too many parameters", None
 
-# 可以添加其他限制
+# Can add other limits
 if inference_time > 0.05:  # 50ms
     return False, "Too slow", None
 ```
 
 ---
 
-## 📊 监控和统计
+## Monitoring and Statistics
 
-### 查看提交日志
+### View Submission Logs
 
-在 "Submissions" 标签页可以看到：
-- 提交时间
-- 学生姓名
-- 模型参数量
-- 验证状态
+In "Submissions" tab you can see:
+- Submission time
+- Student name
+- Model parameters
+- Validation status
 
-### 导出结果
+### Export Results
 
-在 Leaderboard 页面可以添加导出按钮：
+In Leaderboard page you can add export button:
 
 ```python
-if st.button("📥 Export Results"):
+if st.button("Export Results"):
     rankings = st.session_state['tournament_results']
     import pandas as pd
     df = pd.DataFrame(rankings)
@@ -193,55 +193,55 @@ if st.button("📥 Export Results"):
 
 ---
 
-## 🐛 常见问题
+## FAQ
 
-### Q: 文件上传后消失？
-A: Streamlit Cloud 重启后文件会丢失。使用外部存储或定期备份。
+### Q: Files disappear after upload?
+A: Streamlit Cloud restarts lose files. Use external storage or regular backup.
 
-### Q: 模型加载失败？
-A: 检查：
-1. 类名是否为 `StudentAgent`
-2. 模型结构是否与保存时一致
-3. 文件是否完整上传
+### Q: Model loading failed?
+A: Check:
+1. Is class name `StudentAgent`
+2. Is model structure consistent with when it was saved
+3. Are files completely uploaded
 
-### Q: 并发用户限制？
-A: Streamlit Cloud 免费版支持同时约 10-20 个用户。如需更多，升级 Team 版。
+### Q: Concurrent user limit?
+A: Streamlit Cloud free tier supports about 10-20 concurrent users. Upgrade to Team for more.
 
-### Q: 如何重置所有提交？
-A: 在侧边栏点击 "Refresh All Agents"，或在 GitHub 中清空 `submissions/` 文件夹。
-
----
-
-## 💡 教学建议
-
-### 课程流程
-
-1. **Week 1**: 发布挑战，讲解 RNN 和游戏规则
-2. **Week 2-3**: 学生本地开发，提交到网站
-3. **Week 4**: 运行最终锦标赛，公布排名
-4. **Week 5**: 获胜者分享经验
-
-### 防止作弊
-
-1. **代码审查**: 定期检查提交代码
-2. **版本控制**: 要求提交训练日志
-3. **限时提交**: 设置截止日期后锁定上传
-4. **多样性检查**: 检测相似模型（使用模型哈希）
-
-### 激励措施
-
-- 🏆 排行榜前3名获得加分
-- 🎁 最佳创新奖（如使用 Transformer）
-- 📚 代码质量奖（最佳注释和文档）
+### Q: How to reset all submissions?
+A: Click "Refresh All Agents" in sidebar, or empty `submissions/` folder in GitHub.
 
 ---
 
-## 🔗 相关链接
+## Teaching Suggestions
+
+### Course Flow
+
+1. **Week 1**: Release challenge, explain RNN and game rules
+2. **Week 2-3**: Students develop locally, submit to website
+3. **Week 4**: Run final tournament, announce rankings
+4. **Week 5**: Winners share experience
+
+### Prevent Cheating
+
+1. **Code Review**: Regularly check submitted code
+2. **Version Control**: Require submission of training logs
+3. **Time Limit**: Lock uploads after deadline
+4. **Diversity Check**: Detect similar models (using model hash)
+
+### Incentives
+
+- Top 3 on leaderboard get bonus points
+- Best Innovation Award (e.g., using Transformer)
+- Code Quality Award (best comments and documentation)
+
+---
+
+## Related Links
 
 - Streamlit Cloud: https://streamlit.io/cloud
-- 文档: https://docs.streamlit.io/
-- 社区: https://discuss.streamlit.io/
+- Documentation: https://docs.streamlit.io/
+- Community: https://discuss.streamlit.io/
 
 ---
 
-**祝教学愉快！🎉**
+**Happy Teaching!**

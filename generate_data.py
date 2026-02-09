@@ -2,13 +2,13 @@
 Better Data Generation for RNN Tron
 ====================================
 
-生成多样化、高质量的专家数据用于模仿学习
+Generate diverse, high-quality expert data for imitation learning
 
 Features:
-- 多种专家策略 (Greedy, BFS, A*)
-- 数据平衡 (确保动作分布均匀)
-- 数据增强 (对称变换)
-- 自适应探索
+- Multiple expert strategies (Greedy, BFS, A*)
+- Data balancing (ensure uniform action distribution)
+- Data augmentation (symmetry transformations)
+- Adaptive exploration
 
 Usage:
     python generate_data.py --games 2000 --strategy bfs --balance --augment
@@ -25,12 +25,12 @@ from tron_env import BlindTronEnv, UP, DOWN, LEFT, RIGHT
 
 
 class GreedyExpert:
-    """贪心专家 - 选择不撞墙的安全动作"""
+    """Greedy expert - choose safe actions that don't hit walls"""
     
     def __init__(self, env, player_id=1, epsilon=0.1):
         self.env = env
         self.player_id = player_id
-        self.epsilon = epsilon  # 探索概率
+        self.epsilon = epsilon  # Exploration probability
     
     def get_action(self, obs):
         pos = self.env.p1_pos if self.player_id == 1 else self.env.p2_pos
@@ -41,14 +41,14 @@ class GreedyExpert:
         if not safe_actions:
             return random.randint(0, 3)
         
-        # Epsilon-greedy: 以 epsilon 概率随机探索
+        # Epsilon-greedy: explore with epsilon probability
         if random.random() < self.epsilon:
             return random.choice(safe_actions)
         
         return random.choice(safe_actions)
     
     def _get_safe_actions(self, pos, curr_dir):
-        """获取所有安全动作"""
+        """Get all safe actions"""
         safe = []
         for action in [UP, DOWN, LEFT, RIGHT]:
             if not self._is_valid_turn(curr_dir, action):
@@ -80,7 +80,7 @@ class GreedyExpert:
 
 
 class BFSExpert:
-    """BFS专家 - 选择能存活最久的方向"""
+    """BFS expert - choose direction that survives longest"""
     
     def __init__(self, env, player_id=1, depth=30):
         self.env = env
@@ -102,7 +102,7 @@ class BFSExpert:
             if self._is_collision(new_pos):
                 continue
             
-            # BFS计算从该方向能到达的空间
+            # BFS to calculate reachable space from this direction
             score = self._bfs_score(new_pos)
             
             if score > best_score:
@@ -112,7 +112,7 @@ class BFSExpert:
         return best_action if best_action is not None else random.randint(0, 3)
     
     def _bfs_score(self, start_pos):
-        """BFS计算可达空间"""
+        """BFS to calculate reachable space"""
         visited = set()
         queue = deque([(start_pos[0], start_pos[1])])
         visited.add((start_pos[0], start_pos[1]))
@@ -157,7 +157,7 @@ class BFSExpert:
 
 
 class WallHuggerExpert:
-    """贴墙专家 - 倾向于沿着墙壁移动（增加多样性）"""
+    """Wall hugger expert - prefers moving along walls (increases diversity)"""
     
     def __init__(self, env, player_id=1):
         self.env = env
@@ -172,19 +172,19 @@ class WallHuggerExpert:
         if not safe_actions:
             return random.randint(0, 3)
         
-        # 优先选择靠近墙壁的动作
+        # Prefer actions that move close to walls
         wall_scores = {}
         for action in safe_actions:
             new_pos = self._move(pos, action)
             wall_scores[action] = self._count_adjacent_walls(new_pos)
         
-        # 选择墙最多的方向（有随机性）
+        # Choose direction with most walls (with some randomness)
         max_walls = max(wall_scores.values())
         best_actions = [a for a, s in wall_scores.items() if s == max_walls]
         return random.choice(best_actions)
     
     def _count_adjacent_walls(self, pos):
-        """计算相邻的墙壁数"""
+        """Count adjacent walls"""
         count = 0
         for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nr, nc = pos[0] + dr, pos[1] + dc
@@ -204,7 +204,7 @@ class WallHuggerExpert:
 
 
 class MixedExpert:
-    """混合专家 - 动态切换策略"""
+    """Mixed expert - dynamically switches strategies"""
     
     def __init__(self, env, player_id=1):
         self.env = env
@@ -220,7 +220,7 @@ class MixedExpert:
     def get_action(self, obs):
         self.steps += 1
         
-        # 每50步切换一次策略
+        # Switch strategy every 50 steps
         if self.steps % 50 == 0:
             self.current_expert = random.choice(list(self.experts.keys()))
         
@@ -229,27 +229,27 @@ class MixedExpert:
 
 def balance_data(X, Y, max_ratio=2.0):
     """
-    平衡数据集，确保动作分布均匀
+    Balance dataset to ensure uniform action distribution
     
     Args:
-        X: 输入数据
-        Y: 标签
-        max_ratio: 最大允许的动作比例差异
+        X: Input data
+        Y: Labels
+        max_ratio: Maximum allowed action ratio difference
     
     Returns:
-        平衡后的 X, Y
+        Balanced X, Y
     """
     action_counts = Counter(Y)
     min_count = min(action_counts.values())
     max_count = max(action_counts.values())
     
     if max_count / min_count <= max_ratio:
-        # 已经足够平衡
+        # Already balanced enough
         return X, Y
     
     print(f"  Balancing data: {dict(action_counts)}")
     
-    # 确定每个动作的样本数上限
+    # Determine maximum samples per action
     max_per_action = int(min_count * max_ratio)
     
     balanced_X = []
@@ -262,10 +262,10 @@ def balance_data(X, Y, max_ratio=2.0):
             balanced_Y.append(y)
             action_collected[y] += 1
     
-    # 如果某些动作太少，过采样
+    # If some actions too few, oversample
     for action in [0, 1, 2, 3]:
         while action_collected[action] < max_per_action * 0.8:
-            # 找到该动作的所有样本并随机复制
+            # Find all samples of this action and randomly copy
             action_indices = [i for i, y in enumerate(Y) if y == action]
             if action_indices:
                 idx = random.choice(action_indices)
@@ -278,27 +278,27 @@ def balance_data(X, Y, max_ratio=2.0):
 
 def augment_data(X, Y):
     """
-    数据增强：水平翻转
+    Data augmentation: horizontal flip
     
-    观测顺序: [N, NE, E, SE, S, SW, W, NW, x, y]
-    水平翻转后: [N, NW, W, SW, S, SE, E, NE, x, y]
+    Observation order: [N, NE, E, SE, S, SW, W, NW, x, y]
+    After horizontal flip: [N, NW, W, SW, S, SE, E, NE, x, y]
     """
     X_aug = []
     Y_aug = []
     
     for x, y in zip(X, Y):
-        # 原样本
+        # Original sample
         X_aug.append(x)
         Y_aug.append(y)
         
-        # 水平翻转
+        # Horizontal flip
         x_flip = x.copy()
-        # 交换 E<->W, NE<->NW, SE<->SW
+        # Swap E<->W, NE<->NW, SE<->SW
         x_flip[:, [2, 6]] = x_flip[:, [6, 2]]  # E <-> W
         x_flip[:, [1, 7]] = x_flip[:, [7, 1]]  # NE <-> NW
         x_flip[:, [3, 5]] = x_flip[:, [5, 3]]  # SE <-> SW
         
-        # 动作翻转: LEFT<->RIGHT, UP/DOWN不变
+        # Action flip: LEFT<->RIGHT, UP/DOWN unchanged
         flip_map = {UP: UP, DOWN: DOWN, LEFT: RIGHT, RIGHT: LEFT}
         y_flip = flip_map[y]
         
@@ -318,16 +318,16 @@ def generate_dataset(
     verbose=True
 ):
     """
-    生成训练数据集
+    Generate training dataset
     
     Args:
-        num_games: 游戏局数
-        seq_len: 序列长度
-        strategy: 策略 ('greedy', 'bfs', 'wall', 'mixed')
-        balance: 是否平衡数据
-        augment: 是否数据增强
-        min_game_length: 最小游戏长度（过滤太短的游戏）
-        verbose: 是否打印详细信息
+        num_games: Number of games
+        seq_len: Sequence length
+        strategy: Strategy ('greedy', 'bfs', 'wall', 'mixed')
+        balance: Whether to balance data
+        augment: Whether to augment data
+        min_game_length: Minimum game length (filter too short games)
+        verbose: Whether to print detailed information
     """
     env = BlindTronEnv(grid_size=20, render_mode=False)
     
@@ -342,7 +342,7 @@ def generate_dataset(
         if verbose and (game + 1) % 100 == 0:
             print(f"  Progress: {game + 1}/{num_games}")
         
-        # 创建Agent
+        # Create Agents
         if strategy == 'greedy':
             agent1 = GreedyExpert(env, 1, epsilon=0.15)
             agent2 = GreedyExpert(env, 2, epsilon=0.15)
@@ -389,14 +389,14 @@ def generate_dataset(
         print(f"Average game length: {np.mean(game_lengths):.1f} steps")
         print(f"Action distribution: {action_counts}")
     
-    # 数据平衡
+    # Data balancing
     if balance:
         X, Y = balance_data(X, Y)
         if verbose:
             new_counts = Counter(Y)
             print(f"After balancing: {dict(new_counts)}")
     
-    # 数据增强
+    # Data augmentation
     if augment:
         X, Y = augment_data(X, Y)
         if verbose:
@@ -406,7 +406,7 @@ def generate_dataset(
 
 
 def split_dataset(X, Y, train_ratio=0.9):
-    """分割训练集和验证集"""
+    """Split into training and validation sets"""
     n = len(X)
     indices = np.random.permutation(n)
     train_size = int(n * train_ratio)
@@ -418,7 +418,7 @@ def split_dataset(X, Y, train_ratio=0.9):
 
 
 def analyze_dataset(X_path="train_X.npy", Y_path="train_Y.npy"):
-    """分析数据集"""
+    """Analyze dataset"""
     X = np.load(X_path)
     Y = np.load(Y_path)
     
@@ -464,7 +464,7 @@ if __name__ == "__main__":
             augment=args.augment
         )
         
-        # 保存
+        # Save
         if args.split:
             X_train, Y_train, X_val, Y_val = split_dataset(X, Y, args.split)
             np.save("train_X.npy", X_train)
@@ -477,4 +477,4 @@ if __name__ == "__main__":
             np.save("train_Y.npy", Y)
             print(f"\nSaved: train_X.npy, train_Y.npy ({len(X)} samples)")
         
-        print("\n✓ Data generation complete!")
+        print("\n✓ Data generation complete!

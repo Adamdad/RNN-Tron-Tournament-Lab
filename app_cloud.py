@@ -1,6 +1,6 @@
 """
 RNN Tron Championship - Streamlit Cloud Version
-支持学生自主上传和验证
+Supports student self-upload and validation
 """
 
 import streamlit as st
@@ -19,18 +19,18 @@ from base_agent import RandomAgent, ExampleAgent
 from tournament_runner import Tournament
 from submission_manager import SubmissionManager
 
-# 页面配置
+# Page config
 st.set_page_config(
     page_title="RNN Tron Championship", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ========== 配置 ==========
+# ========== Configuration ==========
 SUBMISSIONS_DIR = Path("submissions")
 SUBMISSIONS_DIR.mkdir(exist_ok=True)
 
-# 颜色映射
+# Color mapping
 COLORS = {
     EMPTY: [0, 0, 0],
     WALL: [100, 100, 100],
@@ -40,10 +40,10 @@ COLORS = {
     P2_TRAIL: [150, 0, 0]
 }
 
-# ========== 工具函数 ==========
+# ========== Utility Functions ==========
 
 def grid_to_image(grid, cell_size=20):
-    """转换网格为图片"""
+    """Convert grid to image"""
     h, w = grid.shape
     img = np.zeros((h, w, 3), dtype=np.uint8)
     for val, color in COLORS.items():
@@ -53,7 +53,7 @@ def grid_to_image(grid, cell_size=20):
 
 @st.cache_resource
 def load_all_agents():
-    """加载所有Agent（内置 + 提交）"""
+    """Load all Agents (built-in + submitted)"""
     agents = {"🎲 Random": RandomAgent(), "📚 Example": ExampleAgent()}
     manager = SubmissionManager(SUBMISSIONS_DIR)
     agents.update(manager.load_all_agents())
@@ -62,13 +62,13 @@ def load_all_agents():
 
 def validate_submission(py_file, pth_file, student_name):
     """
-    验证学生提交
+    Validate student submission
     
     Returns:
         (is_valid, error_message, agent_instance)
     """
     try:
-        # 保存上传的文件到临时位置
+        # Save uploaded files to temporary location
         temp_dir = SUBMISSIONS_DIR / f"temp_{student_name}"
         temp_dir.mkdir(exist_ok=True)
         
@@ -81,42 +81,42 @@ def validate_submission(py_file, pth_file, student_name):
         with open(pth_path, "wb") as f:
             f.write(pth_file.getvalue())
         
-        # 尝试加载
+        # Try to load
         import importlib.util
         spec = importlib.util.spec_from_file_location(f"agent_{student_name}", py_path)
         module = importlib.util.module_from_spec(spec)
         sys.modules[f"agent_{student_name}"] = module
         spec.loader.exec_module(module)
         
-        # 检查 StudentAgent 类
+        # Check for StudentAgent class
         if not hasattr(module, 'StudentAgent'):
-            return False, "错误：找不到 StudentAgent 类", None
+            return False, "Error: StudentAgent class not found", None
         
         agent = module.StudentAgent()
         
-        # 加载权重
+        # Load weights
         state_dict = torch.load(pth_path, map_location='cpu')
         agent.load_state_dict(state_dict)
         agent.eval()
         
-        # 检查参数量
+        # Check parameter count
         total_params = sum(p.numel() for p in agent.parameters())
         if total_params > 100_000:
-            return False, f"错误：模型太大 ({total_params:,} 参数 > 100K 限制)", None
+            return False, f"Error: Model too large ({total_params:,} params > 100K limit)", None
         
-        # 测试推理
+        # Test inference
         dummy_obs = np.random.randn(10).astype(np.float32)
         agent.reset()
         action = agent.get_action(dummy_obs)
         
         if not isinstance(action, int) or action < 0 or action > 3:
-            return False, f"错误：无效的动作输出 {action}", None
+            return False, f"Error: Invalid action output {action}", None
         
-        # 验证通过，移动到正式目录
+        # Validation passed, move to official directory
         final_py = SUBMISSIONS_DIR / f"{student_name}_agent.py"
         final_pth = SUBMISSIONS_DIR / f"{student_name}_agent.pth"
         
-        # 如果已存在，备份旧版本
+        # Backup old version if exists
         if final_py.exists():
             backup_time = datetime.now().strftime("%Y%m%d_%H%M%S")
             final_py.rename(SUBMISSIONS_DIR / f"{student_name}_agent_{backup_time}.py")
@@ -126,10 +126,10 @@ def validate_submission(py_file, pth_file, student_name):
         shutil.move(str(py_path), str(final_py))
         shutil.move(str(pth_path), str(final_pth))
         
-        # 清理临时目录
+        # Clean up temporary directory
         shutil.rmtree(temp_dir)
         
-        # 记录提交日志
+        # Log submission
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "student": student_name,
@@ -148,18 +148,18 @@ def validate_submission(py_file, pth_file, student_name):
         with open(log_file, "w") as f:
             json.dump(logs, f, indent=2)
         
-        return True, f"✅ 验证通过！模型参数: {total_params:,}", agent
+        return True, f"✅ Validation passed! Model parameters: {total_params:,}", agent
         
     except Exception as e:
-        return False, f"❌ 错误：{str(e)}", None
+        return False, f"❌ Error: {str(e)}", None
 
 
-# ========== 页面布局 ==========
+# ========== Page Layout ==========
 
 st.title("🐍 RNN Tron Championship")
 st.markdown("---")
 
-# 侧边栏 - 提交表单
+# Sidebar - submission form
 with st.sidebar:
     st.header("📤 Submit Your Agent")
     
@@ -190,7 +190,7 @@ with st.sidebar:
         if not student_name or not py_file or not pth_file:
             st.error("❌ Please fill in all fields and upload both files!")
         else:
-            # 清理姓名（只允许字母、数字、下划线）
+            # Clean name (only letters, numbers, underscores)
             import re
             clean_name = re.sub(r'[^a-zA-Z0-9_]', '_', student_name.lower())
             
@@ -203,22 +203,22 @@ with st.sidebar:
                 st.success(message)
                 st.balloons()
                 st.info("🎉 Your agent has been registered! Check the Leaderboard tab.")
-                # 清除缓存，重新加载
+                # Clear cache and reload
                 st.cache_resource.clear()
             else:
                 st.error(message)
     
     st.divider()
     
-    # 刷新按钮
+    # Refresh button
     if st.button("🔄 Refresh All Agents"):
         st.cache_resource.clear()
         st.rerun()
 
-# 加载所有Agent
+# Load all Agents
 agents = load_all_agents()
 
-# 主内容区 - 标签页
+# Main content area - tabs
 tab1, tab2, tab3, tab4 = st.tabs([
     "🏆 Tournament", 
     "🎮 Live Match", 
@@ -226,7 +226,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "📋 Submissions"
 ])
 
-# ========== Tab 1: 锦标赛 ==========
+# ========== Tab 1: Tournament ==========
 with tab1:
     st.header("Round Robin Tournament")
     
@@ -243,12 +243,12 @@ with tab1:
                 with st.spinner("Running tournament..."):
                     tourney = Tournament()
                     
-                    # 计算总比赛数
+                    # Calculate total matches
                     n = len(agents)
                     total_matches = n * (n - 1) // 2
                     current_match = 0
                     
-                    # 手动运行以显示进度
+                    # Manual run to show progress
                     names = list(agents.keys())
                     rankings_data = {name: {"points": 0, "wins": 0} for name in names}
                     
@@ -264,7 +264,7 @@ with tab1:
                                 name1, name2, games
                             )
                             
-                            # 计分
+                            # Scoring
                             if wins[name1] > wins[name2]:
                                 rankings_data[name1]["points"] += 3
                                 rankings_data[name1]["wins"] += 1
@@ -277,7 +277,7 @@ with tab1:
                             
                             progress_bar.progress(current_match / total_matches)
                     
-                    # 排序
+                    # Sort
                     rankings = sorted(
                         rankings_data.items(), 
                         key=lambda x: (-x[1]["points"], -x[1]["wins"])
@@ -298,7 +298,7 @@ with tab1:
             st.subheader("Quick Results")
             rankings = st.session_state['tournament_results']
             
-            for rank, (name, score) in enumerate(rankings[:5], 1):  # 只显示前5
+            for rank, (name, score) in enumerate(rankings[:5], 1):  # Show top 5 only
                 medal = "🥇" if rank == 1 else "🥈" if rank == 2 else "🥉" if rank == 3 else f"#{rank}"
                 st.write(f"{medal} **{name}**: {score['points']} pts")
             
@@ -307,7 +307,7 @@ with tab1:
         else:
             st.info("Click 'Start Tournament' to run the competition")
 
-# ========== Tab 2: 观战 ==========
+# ========== Tab 2: Live Match ==========
 with tab2:
     st.header("Live Match")
     
@@ -352,14 +352,14 @@ with tab2:
         else:
             st.info("🤝 Draw!")
 
-# ========== Tab 3: 排行榜 ==========
+# ========== Tab 3: Leaderboard ==========
 with tab3:
     st.header("📊 Leaderboard")
     
     if st.session_state.get('tournament_complete'):
         rankings = st.session_state['tournament_results']
         
-        # 统计卡片
+        # Stat cards
         cols = st.columns(4)
         with cols[0]:
             st.metric("Total Agents", len(rankings))
@@ -375,10 +375,10 @@ with tab3:
         
         st.divider()
         
-        # 完整排名表
+        # Full rankings table
         st.subheader("Full Rankings")
         
-        # 表头
+        # Headers
         cols = st.columns([1, 4, 2, 2, 2])
         cols[0].write("**Rank**")
         cols[1].write("**Agent**")
@@ -416,7 +416,7 @@ with tab3:
     else:
         st.info("🎯 Run a tournament to see the rankings!")
         
-        # 显示已注册Agent
+        # Show registered agents
         st.subheader("Registered Agents")
         for i, (name, agent) in enumerate(agents.items(), 1):
             cols = st.columns([1, 4, 3])
@@ -431,7 +431,7 @@ with tab3:
                 except:
                     st.caption("Random agent")
 
-# ========== Tab 4: 提交记录 ==========
+# ========== Tab 4: Submission History ==========
 with tab4:
     st.header("📋 Submission History")
     
@@ -440,10 +440,10 @@ with tab4:
         with open(log_file, "r") as f:
             logs = json.load(f)
         
-        # 显示最近提交
+        # Show recent submissions
         st.subheader("Recent Submissions")
         
-        for log in reversed(logs[-10:]):  # 最近10条
+        for log in reversed(logs[-10:]):  # Last 10
             with st.container():
                 cols = st.columns([2, 3, 2, 2])
                 with cols[0]:
@@ -461,7 +461,7 @@ with tab4:
     else:
         st.info("No submissions yet. Be the first!")
     
-    # 显示所有文件
+    # Show all files
     st.divider()
     st.subheader("All Submission Files")
     
@@ -473,6 +473,6 @@ with tab4:
     else:
         st.caption("No .py files submitted yet")
 
-# 页脚
+# Footer
 st.markdown("---")
 st.caption("RNN Tron Championship | Powered by Streamlit")
