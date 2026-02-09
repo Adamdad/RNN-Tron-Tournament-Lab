@@ -8,10 +8,10 @@ import numpy as np
 
 # ========== Fill in Your Information ==========
 STUDENT_INFO = {
-    "name": "Your Name",
-    "student_id": "Your ID",
-    "team_name": "Your Team",
-    "description": "Brief description"
+    "name": "GRU",
+    "student_id": "2024001001",
+    "team_name": "GRU",
+    "description": "GRU"
 }
 
 
