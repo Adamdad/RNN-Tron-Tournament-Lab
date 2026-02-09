@@ -391,95 +391,44 @@ with tab2:
     if p1 == p2:
         st.warning("Please select two different agents!")
     else:
-        # Initialize game state
-        if 'game_state' not in st.session_state:
-            st.session_state.game_state = None
-        
-        # Start new game button
-        if st.button("▶️ New Game", use_container_width=True):
-            st.session_state.game_state = {
-                'env': BlindTronEnv(render_mode=False),
-                'done': False,
-                'steps': 0,
-                'winner': 0,
-                'p1': p1,
-                'p2': p2
-            }
-            obs1, obs2 = st.session_state.game_state['env'].reset()
-            agents[p1].reset()
-            agents[p2].reset()
-            st.session_state.game_state['obs1'] = obs1
-            st.session_state.game_state['obs2'] = obs2
-            st.rerun()
-        
-        # Display game if active
-        if st.session_state.game_state is not None and not st.session_state.game_state.get('done', False):
-            state = st.session_state.game_state
-            
-            # Game controls
-            ctrl_col1, ctrl_col2, ctrl_col3 = st.columns([1, 1, 1])
-            with ctrl_col1:
-                auto_play = st.toggle("Auto Play", value=True)
-            with ctrl_col2:
-                if not auto_play:
-                    if st.button("Next Step"):
-                        pass  # Will advance one step
-            with ctrl_col3:
-                if st.button("Stop"):
-                    st.session_state.game_state = None
-                    st.rerun()
-            
-            # Make move if auto-play or next step clicked
-            if auto_play or st.session_state.get('next_step', False):
-                with torch.no_grad():
-                    a1 = agents[state['p1']].get_action(state['obs1'])
-                    a2 = agents[state['p2']].get_action(state['obs2'])
+        # Run game button
+        if st.button("▶️ Play Match", use_container_width=True, key="play_match"):
+            with st.spinner("Running game..."):
+                # Initialize
+                env = BlindTronEnv(render_mode=False)
+                obs1, obs2 = env.reset()
+                agents[p1].reset()
+                agents[p2].reset()
                 
-                obs1, obs2, done, winner = state['env'].step(a1, a2)
-                state['obs1'] = obs1
-                state['obs2'] = obs2
-                state['done'] = done
-                state['winner'] = winner
-                state['steps'] += 1
+                # Create placeholder for visualization
+                placeholder = st.empty()
                 
-                if state['steps'] >= 400:
-                    state['done'] = True
+                # Run game loop
+                done = False
+                steps = 0
+                winner = 0
                 
-                # Auto-rerun for next frame
-                if auto_play and not state['done']:
+                while not done and steps < 400:
+                    with torch.no_grad():
+                        a1 = agents[p1].get_action(obs1)
+                        a2 = agents[p2].get_action(obs2)
+                    
+                    obs1, obs2, done, winner = env.step(a1, a2)
+                    
+                    # Update display
+                    img = grid_to_image(env.grid)
+                    placeholder.image(img, caption=f"Step {steps} | 🔵 {p1} vs 🔴 {p2}", width=240)
+                    
+                    steps += 1
                     time.sleep(1.0/fps)
-                    st.rerun()
-            
-            # Display game board
-            viz_col1, viz_col2, viz_col3 = st.columns([1, 2, 1])
-            with viz_col2:
-                img = grid_to_image(state['env'].grid)
-                st.image(img, caption=f"Step {state['steps']}", use_container_width=False)
                 
-                # Show current players
-                st.caption(f"🔵 {state['p1']} vs 🔴 {state['p2']}")
-        
-        # Show game over message
-        elif st.session_state.game_state is not None and st.session_state.game_state.get('done', False):
-            state = st.session_state.game_state
-            winner = state['winner']
-            
-            # Final board display
-            viz_col1, viz_col2, viz_col3 = st.columns([1, 2, 1])
-            with viz_col2:
-                img = grid_to_image(state['env'].grid)
-                st.image(img, caption=f"Final - Step {state['steps']}", use_container_width=False)
-            
-            if winner == 1:
-                st.success(f"🏆 {state['p1']} wins!")
-            elif winner == 2:
-                st.success(f"🏆 {state['p2']} wins!")
-            else:
-                st.info("🤝 Draw!")
-            
-            if st.button("Play Again", use_container_width=True):
-                st.session_state.game_state = None
-                st.rerun()
+                # Show result
+                if winner == 1:
+                    st.success(f"🏆 {p1} wins!")
+                elif winner == 2:
+                    st.success(f"🏆 {p2} wins!")
+                else:
+                    st.info("🤝 Draw!")
 
 # ========== Tab 3: Leaderboard ==========
 with tab3:
