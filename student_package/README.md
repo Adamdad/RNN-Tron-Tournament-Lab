@@ -7,8 +7,8 @@ Welcome to the RNN Tron Challenge! Train an RNN Agent to compete in the Tron gam
 ```
 student_package/
 ├── README.md              # This file
-├── student_template.py    # Python template - MODIFY THIS!
-├── student_template.ipynb # Jupyter notebook with visualizations
+├── student_template.py    # Main template - EDIT THIS FILE!
+├── student_template.ipynb # Jupyter notebook for visualization & testing
 ├── tron_env.py           # Game environment (for local testing)
 ├── requirements.txt      # Python dependencies
 ├── packages.txt          # System dependencies (for pygame)
@@ -17,7 +17,7 @@ student_package/
 └── submissions/          # Where to save your trained model
 ```
 
-## Setup Instructions
+## Quick Start
 
 ### 1. Install Dependencies
 
@@ -30,185 +30,122 @@ For Jupyter notebook:
 pip install jupyter ipython
 ```
 
-On Linux, you may also need system dependencies for pygame:
+On Linux, you may also need:
 ```bash
-# Ubuntu/Debian
 sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
 ```
 
-## Development Options
+### 2. Edit the Template
 
-### Option A: Jupyter Notebook (Recommended)
+**Edit `student_template.py`** and fill in:
 
-The notebook provides an interactive environment with built-in visualizations:
-
-```bash
-jupyter notebook student_template.ipynb
-```
-
-**Notebook Features:**
-- Interactive training with real-time feedback
-- Game simulation video - watch your agent play
-- Final game state visualization
-- Step-by-step code cells for easy debugging
-
-### Option B: Python Script
-
-For command-line development:
-
-```bash
-python student_template.py --train --epochs 20
-```
-
-## Steps to Complete
-
-### 1. Fill in Your Information
-
-**In the template (lines 10-15):**
 ```python
+# Lines 10-15: Your information
 STUDENT_INFO = {
     "name": "Your Name",
     "student_id": "Your Student ID",
     "team_name": "Your Team Name",
     "description": "Brief description of your approach"
 }
-```
 
-### 2. Design Your Model
-
-**Modify `MyModel` class (lines 19-28):**
-```python
+# Lines 19-28: Your model architecture
 class MyModel(nn.Module):
     def __init__(self):
         super().__init__()
-        # TODO: Define your network architecture
-        # Default is a simple LSTM, but you can modify it!
+        # TODO: Define your network
         self.lstm = nn.LSTM(10, 64, batch_first=True)
         self.fc = nn.Linear(64, 4)
 ```
 
-### 3. Train Your Model
+### 3. Development Workflow
 
-**Jupyter Notebook:**
-- Run all cells up to "Main Program - Train Your Model"
-- Adjust epochs, learning rate, and batch size
-- Execute the training cell
+#### Option A: Jupyter Notebook (Recommended for Development)
 
-**Python Script:**
+The notebook **imports from your template**, so you don't need to duplicate code:
+
+```python
+from student_template import STUDENT_INFO, MyModel, StudentAgent
+```
+
+**Benefits:**
+- Interactive training with parameter adjustment
+- Real-time game visualization
+- Step-by-step debugging
+
+**Usage:**
+```bash
+jupyter notebook student_template.ipynb
+```
+
+**Notebook Steps:**
+1. Run all cells to import your agent
+2. Adjust training parameters (epochs, lr, batch_size)
+3. Execute training cell
+4. Watch your agent play in the visualization
+
+#### Option B: Python Script (For Final Training)
+
 ```bash
 python student_template.py --train --epochs 20
 ```
 
-This saves your model to `submissions/your_name_agent.pth`
+## Development Tips
 
-### 4. Visualize Your Agent (Notebook Only)
+1. **Start with the notebook** to visualize and understand the game
+2. **Experiment in the notebook** with different architectures
+3. **Use the script** for final training with more epochs
+4. **Keep `student_template.py` as your source of truth** - the notebook imports from it
 
-The notebook includes visualization cells that:
-- Show a video of your agent playing
-- Display the final game state
-- Help you understand your agent's behavior
+## Understanding the Code
 
-### 5. Test Your Agent Locally
+### student_template.py (EDIT THIS)
+Contains three key components you must define:
 
 ```python
-from student_template import StudentAgent
-from tron_env import BlindTronEnv
-import random
-
-agent = StudentAgent()
-env = BlindTronEnv(render_mode=True)
-
-# Run a test game
-obs1, obs2 = env.reset()
-agent.reset()
-done = False
-
-while not done:
-    action = agent.get_action(obs1)
-    opponent_action = random.randint(0, 3)
-    obs1, obs2, done, winner = env.step(action, opponent_action)
-
-print(f"Game over! Winner: {winner}")
+STUDENT_INFO = {...}      # Your team info
+class MyModel(nn.Module):  # Your neural network
+class StudentAgent:        # The agent wrapper (DON'T RENAME)
 ```
 
-### 6. Submit Your Solution
+### student_template.ipynb (VISUALIZATION ONLY)
+- Imports your code from `student_template.py`
+- Provides training and visualization cells
+- Helps you debug and understand your agent
+
+**Key imports:**
+```python
+from student_template import STUDENT_INFO, MyModel, StudentAgent
+```
+
+## Submission
 
 Submit **two files**:
-1. `student_template.py` (or your renamed version)
-2. `submissions/your_name_agent.pth` (trained weights)
+1. `student_template.py` (your code with STUDENT_INFO, MyModel, StudentAgent)
+2. `submissions/your_name_agent.pth` (your trained weights)
 
-## Tips for Success
+## Constraints
 
-1. **Understand the observation** (10-dim vector):
-   - 8 direction distances (N, NE, E, SE, S, SW, W, NW) - normalized 0-1
-   - 2 normalized coordinates (x, y)
+- Maximum 100,000 parameters
+- Must use provided training data
+- Class name must be `StudentAgent`
+- No hard-coded strategies
 
-2. **Action space** (4 actions):
-   - 0 = UP
-   - 1 = DOWN
-   - 2 = LEFT
-   - 3 = RIGHT
+## Observation Format (10-dim vector)
 
-3. **Model constraints**:
-   - Maximum 100,000 parameters
-   - Must implement `StudentAgent` class
-   - Must have `get_action()` and `reset()` methods
+- **0-7**: Distance to obstacle in 8 directions (N, NE, E, SE, S, SW, W, NW), normalized 0-1
+- **8-9**: Normalized player coordinates (x, y)
 
-4. **Try different architectures**:
-   - LSTM/GRU with different hidden sizes
-   - Multiple LSTM layers
-   - Add dropout for regularization
-   - Try attention mechanisms
+## Action Space
 
-5. **Training tips**:
-   - Start with default settings
-   - Monitor accuracy on training data
-   - Try different learning rates (0.001, 0.0005, 0.0001)
-   - Increase epochs gradually (watch for overfitting)
-
-## File Descriptions
-
-### student_template.py / student_template.ipynb
-Your main files to modify. Contains:
-- `STUDENT_INFO`: Your team information
-- `MyModel`: Your neural network architecture
-- `StudentAgent`: The agent class (do NOT rename!)
-- `train()`: Training function
-- Visualizations (notebook only)
-
-### tron_env.py
-The Tron game environment:
-- 20x20 grid
-- Two players (you vs opponent)
-- Ray-casting observations (8 directions)
-- Collision detection
-- Rendering support
-
-### train_X.npy & train_Y.npy
-Training data for imitation learning (expert demonstrations).
-
-## Rules & Constraints
-
-1. You can modify `student_template.py` or `student_template.ipynb`
-2. Class name must remain `StudentAgent`
-3. Model must have fewer than 100,000 parameters
-4. Training must use the provided dataset
-5. No hard-coding of specific strategies
-
-## Evaluation
-
-Your agent competes in a round-robin tournament:
-- **Win**: 3 points
-- **Draw**: 1 point
-- **Loss**: 0 points
-
-Final ranking based on total points and number of wins.
+- **0**: UP
+- **1**: DOWN
+- **2**: LEFT
+- **3**: RIGHT
 
 ## Getting Help
 
-1. Check the comments in the template files
+1. Check comments in `student_template.py`
 2. Use the notebook visualizations to debug
 3. Ask questions during office hours
-4. Discuss strategies with classmates (but don't share code!)
 
-Good luck and have fun!
+Good luck!
