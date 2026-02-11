@@ -477,4 +477,4 @@ if __name__ == "__main__":
             np.save("train_Y.npy", Y)
             print(f"\nSaved: train_X.npy, train_Y.npy ({len(X)} samples)")
         
-        print("\n✓ Data generation complete!
+        print("\n✓ Data generation complete!")

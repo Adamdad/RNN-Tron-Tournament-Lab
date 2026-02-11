@@ -8,15 +8,16 @@ A tournament system for students to train RNN Agents to battle in the Tron game.
 lab/
 ├── base_agent.py           # Base Agent class (68 lines)
 ├── student_template.py     # Student template (95 lines, includes training code)
+├── student_template.ipynb  # Jupyter notebook version with visualizations
 ├── generate_data.py        # Generate expert data (93 lines)
 ├── tournament_runner.py    # Tournament runner (92 lines)
 ├── tournament_app.py       # Streamlit interface (116 lines)
 ├── submission_manager.py   # Submission manager (54 lines)
-├── tron_env.py            # Game environment (retained)
+├── tron_env.py            # Game environment (209 lines)
 └── submissions/           # Student submissions directory
 ```
 
-## Usage Workflow
+## Quick Start
 
 ### 1. Teacher Generates Data
 
@@ -26,17 +27,23 @@ python generate_data.py --games 1000
 
 ### 2. Student Development
 
-Copy the template and modify:
+Students can use either the Python script or Jupyter notebook:
 
+**Option A: Python Script**
 ```bash
 cp student_template.py submissions/your_name_agent.py
-```
-
-Modify `STUDENT_INFO` and `MyModel` class, then train:
-
-```bash
 python submissions/your_name_agent.py --train --epochs 20
 ```
+
+**Option B: Jupyter Notebook (Recommended)**
+```bash
+jupyter notebook student_template.ipynb
+```
+
+The notebook includes:
+- Training code
+- Game simulation with video visualization
+- Final game state display
 
 ### 3. Run Tournament
 
@@ -69,19 +76,26 @@ class StudentAgent(nn.Module):
         # Return: int action
 ```
 
-## Simplification Notes
-
-- **base_agent.py**: From 202 lines -> 68 lines
-- **student_template.py**: From 470 lines -> 95 lines  
-- **generate_data.py**: From 504 lines -> 93 lines
-- **tournament_runner.py**: From 312 lines -> 92 lines
-- **tournament_app.py**: From 315 lines -> 116 lines
-- **submission_manager.py**: From 330 lines -> 54 lines
-
-Total reduced from 2133 lines to 518 lines (75% reduction)
-
 ## Dependencies
 
 ```bash
-pip install torch numpy pygame streamlit pillow
+pip install torch numpy pygame streamlit pillow matplotlib
 ```
+
+For Jupyter notebook:
+```bash
+pip install jupyter ipython
+```
+
+## Observation Format
+
+The input observation is a 10-dimensional vector:
+- **0-7**: Distance to nearest obstacle in 8 directions (N, NE, E, SE, S, SW, W, NW), normalized 0-1
+- **8-9**: Normalized player coordinates (x, y)
+
+## Action Space
+
+- **0**: UP
+- **1**: DOWN
+- **2**: LEFT
+- **3**: RIGHT
